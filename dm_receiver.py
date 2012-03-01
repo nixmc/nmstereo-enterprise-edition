@@ -46,7 +46,11 @@ class DMReceiver(object):
             if len(tracks) > 0:
                 # Save to playlist
                 for track in tracks:
-                    self.playlist_store.save({'track':track, 'from':item["direct_message"]["sender"]})
+                    id = self.playlist_store.save({'track':track, 'status':'new', 'from':item["direct_message"]["sender"]})
+                    # Send each track to 'queue' queue, so it can be broadcast 
+                    # to connected clients
+                    
+                    
             
             ch.basic_ack(delivery_tag=method.delivery_tag)
     
