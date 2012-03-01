@@ -18,7 +18,7 @@ class DMReceiver(object):
         # MongoDB
         self.mongo_connection = Connection()
         self.userstream_store = self.mongo_connection[getattr(settings, "MONGODB_DB_NAME")][getattr(settings, "MONGODB_USERSTREAM_COLLECTION")]
-        self.requests_store = self.mongo_connection[getattr(settings, "MONGODB_DB_NAME")][getattr(settings, "MONGODB_REQUESTS_COLLECTION")]
+        self.playlist_store = self.mongo_connection[getattr(settings, "MONGODB_DB_NAME")][getattr(settings, "MONGODB_PLAYLIST_COLLECTION")]
         
         # AMPQ
         self.ampq_queue = getattr(settings, "AMPQ_QUEUE")
@@ -44,8 +44,9 @@ class DMReceiver(object):
             tracks = spotify.lookup_tracks(item["direct_message"]["text"])
             
             if len(tracks) > 0:
-                # Save back to mongo
-                self.userstream_store.update({'_id': ObjectId(message)}, {'$set': {'spotify': {'tracks': tracks}}})           
+                # Save to playlist
+                for track in tracks:
+                    self.playlist_store.save({'track':track, 'from':item["direct_message"]["sender"]})
             
             ch.basic_ack(delivery_tag=method.delivery_tag)
     
