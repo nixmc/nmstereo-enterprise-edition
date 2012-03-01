@@ -51,7 +51,6 @@ class Broadcaster(object):
         self.amqp_connection.ioloop.start()
     
     def close(self):
-        print "Closing"
         # Gracefully close the connection
         self.amqp_connection.close()
         
@@ -59,6 +58,9 @@ class Broadcaster(object):
         self.amqp_connection.ioloop.start()
     
     def send(self):
+        """
+        Broadcasts the next item to all interested parties.
+        """
         # Get next item
         self.current_item = self.items.pop(0)
         
@@ -73,9 +75,7 @@ class Broadcaster(object):
         
         # Mark item as sent
         self.current_item['status'] = 'sent'
-        # TODO
-        # ...
-        # self.playlist_store.update({'_id': self.current_item['_id']}, self.current_item)
+        self.playlist_store.update({'_id': self.current_item['_id']}, self.current_item)
     
     def next(self):
         pass
@@ -84,7 +84,6 @@ class Broadcaster(object):
         self.amqp_connection.close()
     
     def on_closed(self, frame):
-        print "Stopping the ioloop"
         self.amqp_connection.ioloop.stop()
     
     def on_connected(self, connection):
@@ -95,6 +94,12 @@ class Broadcaster(object):
         self.amqp_connection.channel(self.on_secondary_channel_open)
     
     def on_primary_channel_open(self, ch):
+        """
+        Fires when the primary channel is available to us.
+        
+        The primary channel is to receive new items to be queued, and to broadcast
+        items to be played.
+        """
         # Our usable channel has been passed to us, assign it for future use
         self.amqp_primary_channel = ch
         
@@ -113,6 +118,12 @@ class Broadcaster(object):
                                         callback=self.on_out_queue_declared)
     
     def on_secondary_channel_open(self, ch):
+        """
+        Fires when the secondary channel is available to us.
+        
+        We declare a secondary channel so we can receive confirmations from
+        a seperate channel.
+        """
         # Our usable channel has been passed to us, assign it for future use
         self.amqp_secondary_channel = ch
         
@@ -138,15 +149,25 @@ class Broadcaster(object):
                 self.send()
     
     def on_item(self, ch, method, header, body):
+        """
+        Fires when we receive a new item to queue.
+        """
         print body
         ch.basic_ack(delivery_tag=method.delivery_tag)
     
     def on_confirmation(self, ch, method, header, body):
+        """
+        Fires when a message has been received. Clients are responsible for 'firing' this by 
+        publishing to the `self.amqp_confirm_queue` queue.
+        """
         print body
         ch.basic_ack(delivery_tag=method.delivery_tag)
     
     def on_delivered(self, frame):
-        print "Delivered! :)", type(message)
+        """
+        Fires when a message has been delivered.
+        """
+        pass
     
 
 if __name__ == "__main__":

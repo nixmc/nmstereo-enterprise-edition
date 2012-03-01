@@ -19,7 +19,7 @@ class StreamListener(tweepy.StreamListener):
         self.store = self.mongo_connection[getattr(settings, "MONGODB_DB_NAME")][getattr(settings, "MONGODB_USERSTREAM_COLLECTION")]
         
         # AMQP
-        self.amqp_queue = getattr(settings, "AMQP_QUEUE")
+        self.amqp_queue = getattr(settings, "AMQP_MAIN_QUEUE")
         self.amqp_connection = pika.BlockingConnection(
             pika.ConnectionParameters(host=getattr(settings, "AMQP_HOST")))
         self.channel = self.amqp_connection.channel()
