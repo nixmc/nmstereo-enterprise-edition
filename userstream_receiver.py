@@ -18,12 +18,12 @@ class StreamListener(tweepy.StreamListener):
         self.mongo_connection = Connection()
         self.store = self.mongo_connection[getattr(settings, "MONGODB_DB_NAME")][getattr(settings, "MONGODB_USERSTREAM_COLLECTION")]
         
-        # AMPQ
-        self.ampq_queue = getattr(settings, "AMPQ_QUEUE")
-        self.ampq_connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host=getattr(settings, "AMPQ_HOST")))
-        self.channel = self.ampq_connection.channel()
-        self.channel.queue_declare(queue=self.ampq_queue, durable=True)
+        # AMQP
+        self.amqp_queue = getattr(settings, "AMQP_QUEUE")
+        self.amqp_connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host=getattr(settings, "AMQP_HOST")))
+        self.channel = self.amqp_connection.channel()
+        self.channel.queue_declare(queue=self.amqp_queue, durable=True)
     
     def on_data(self, data):
         if not data:
@@ -39,7 +39,7 @@ class StreamListener(tweepy.StreamListener):
         if "direct_message" in item:
             print "> from", item["direct_message"]["sender"]["screen_name"], ":", item["direct_message"]["text"]
             self.channel.basic_publish(exchange='',
-                routing_key=self.ampq_queue,
+                routing_key=self.amqp_queue,
                 body=str(id),
                 properties=pika.BasicProperties(
                     delivery_mode=2, # make message persistent

@@ -20,16 +20,22 @@ class DMReceiver(object):
         self.userstream_store = self.mongo_connection[getattr(settings, "MONGODB_DB_NAME")][getattr(settings, "MONGODB_USERSTREAM_COLLECTION")]
         self.playlist_store = self.mongo_connection[getattr(settings, "MONGODB_DB_NAME")][getattr(settings, "MONGODB_PLAYLIST_COLLECTION")]
         
-        # AMPQ
-        self.ampq_queue = getattr(settings, "AMPQ_QUEUE")
-        self.ampq_connection = pika.BlockingConnection(pika.ConnectionParameters(
-                host=getattr(settings, "AMPQ_HOST")))
-        self.ampq_channel = self.ampq_connection.channel()
-        self.ampq_channel.queue_declare(queue=self.ampq_queue, durable=True)
+        # AMQP
+        self.amqp_queue = getattr(settings, "AMQP_QUEUE")
+        self.amqp_connection = pika.BlockingConnection(pika.ConnectionParameters(
+                host=getattr(settings, "AMQP_HOST")))
+        
+        # Incoming channel
+        self.amqp_in_channel = self.amqp_connection.channel()
+        self.amqp_in_channel.queue_declare(queue=self.amqp_queue, durable=True)
+        
+        # Outgoing channel
+        # ...
+        
     
     def start_consuming(self):
-        self.ampq_channel.basic_consume(self.receive, queue=self.ampq_queue)
-        self.ampq_channel.start_consuming()
+        self.amqp_in_channel.basic_consume(self.receive, queue=self.amqp_queue)
+        self.amqp_in_channel.start_consuming()
     
     def receive(self, ch, method, properties, message):
         print " [x] Received %r" % (message,)
@@ -49,7 +55,7 @@ class DMReceiver(object):
                     id = self.playlist_store.save({'track':track, 'status':'new', 'from':item["direct_message"]["sender"]})
                     # Send each track to 'queue' queue, so it can be broadcast 
                     # to connected clients
-                    
+                    # ...
                     
             
             ch.basic_ack(delivery_tag=method.delivery_tag)
