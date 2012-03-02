@@ -11,6 +11,10 @@ from pymongo import Connection
 import settings
 
 class StreamListener(tweepy.StreamListener):
+    """
+    Receives the entire userstream. Forwards DMs to the Decoder.
+    """
+    
     def __init__(self):
         super(tweepy.StreamListener, self).__init__()
         

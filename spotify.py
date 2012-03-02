@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+"""
+Utility functions for working with the Spotify Metadata API.
+"""
+
 import codecs
 import json
 import pprint

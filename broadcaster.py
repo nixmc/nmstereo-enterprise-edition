@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Picks up requests from the playlist, and broadcasts to all connected clients (over XMPP?).
+Picks up requests from the playlist, and broadcasts to all connected clients.
 """
 
 import codecs
@@ -17,9 +17,12 @@ import settings
 class Broadcaster(object):
     """
     Receives items, sets their status to 'queued', plays them in order when
-    at least 1 client is connected
+    at least 1 client is connected.
     """
     
+    timeout = False
+    items = []
+    current_item = None
     receive_delivery_confirmations = False
     
     def __init__(self):
@@ -29,6 +32,14 @@ class Broadcaster(object):
         
         # Load previously queued items
         self.items = [item for item in self.playlist_store.find({'status': 'queued'})]
+        
+        # Load 'playing' or 'sent' items -- there should be only ONE
+        # ...
+        
+        # If 'playing' and datime > playing.start_date + playing.track_length:
+        # And if nothing 'sent':
+        # Send next item
+        # ...
         
         # AMQP, get queue names
         self.amqp_in_queue = getattr(settings, "AMQP_IN_BROADCAST_QUEUE")
@@ -41,7 +52,8 @@ class Broadcaster(object):
         self.amqp_connection = pika.SelectConnection(parameters, self.on_connected)
         
         # Add timeout handler (from http://stackoverflow.com/a/8181008)
-        self.amqp_connection.add_timeout(60, self.on_timeout)
+        if self.timeout:
+            self.amqp_connection.add_timeout(60, self.on_timeout)
         
         # Add a callback so we can stop the ioloop
         self.amqp_connection.add_on_close_callback(self.on_closed)        
@@ -109,13 +121,13 @@ class Broadcaster(object):
         
         # Declare 'IN' queue - for receiving items to queue
         self.amqp_primary_channel.queue_declare(queue=self.amqp_in_queue, durable=True,
-                                        exclusive=False, auto_delete=False,
-                                        callback=self.on_in_queue_declared)
+                                                exclusive=False, auto_delete=False,
+                                                callback=self.on_in_queue_declared)
         
         # Declare 'OUT' queue - for broadcasting items
         self.amqp_primary_channel.queue_declare(queue=self.amqp_out_queue, durable=True,
-                                        exclusive=False, auto_delete=False,
-                                        callback=self.on_out_queue_declared)
+                                                exclusive=False, auto_delete=False,
+                                                callback=self.on_out_queue_declared)
     
     def on_secondary_channel_open(self, ch):
         """
@@ -129,8 +141,8 @@ class Broadcaster(object):
         
         # Declare 'IN' queue - for receiving confirmations
         self.amqp_secondary_channel.queue_declare(queue=self.amqp_confirm_queue, durable=True,
-                                        exclusive=False, auto_delete=False,
-                                        callback=self.on_confirm_queue_declared)
+                                                  exclusive=False, auto_delete=False,
+                                                  callback=self.on_confirm_queue_declared)
 
     def on_in_queue_declared(self, frame):
         # Start consuming
