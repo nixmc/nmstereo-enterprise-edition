@@ -14,6 +14,7 @@ from threading import Timer
 from bson.objectid import ObjectId
 import pika
 from pymongo import Connection
+import twitter
 
 import settings
 
@@ -29,6 +30,13 @@ class Broadcaster(object):
     receive_delivery_confirmations = False
     
     def __init__(self):
+        # Twitter client
+        self.twitter = twitter.Twitter(api_version='1', 
+                                       auth=twitter.oauth.OAuth(getattr(settings, "OAUTH_ACCESS_KEY"), 
+                                                                getattr(settings, "OAUTH_ACCESS_SECRET"), 
+                                                                getattr(settings, "OAUTH_CONSUMER_KEY"), 
+                                                                getattr(settings, "OAUTH_CONSUMER_SECRET")))
+        
         # MongoDB
         self.mongo_connection = Connection()
         self.playlist_store = self.mongo_connection[getattr(settings, "MONGODB_DB_NAME")][getattr(settings, "MONGODB_PLAYLIST_COLLECTION")]
@@ -117,6 +125,12 @@ class Broadcaster(object):
     
     def next(self):
         print " [x] Next!"
+        
+        # Set current item to played
+        self.current_item['status'] = 'played'
+        self.playlist_store.update({'_id': self.current_item['_id']}, self.current_item)
+        
+        # Play next item
         self.send()
                 
     def now_playing(self, id):
@@ -137,8 +151,13 @@ class Broadcaster(object):
         timer = Timer(self.current_item['track']['track']['length'], self.next)
         timer.start()
         
-        # Tweet
-        # ...
+        # Tweet!
+        track_name = self.current_item['track']['track']['name']
+        artist_name = self.current_item['track']['track']['artists'][0]['name']
+        screen_name = self.current_item['from']['screen_name']
+        msg = '#Nowplaying %s / %s, requested by @%s' % (artist_name, track_name, screen_name)
+        self.twitter.statuses.update(status=msg, lat="50.82519295639108", long="-0.14594435691833496", display_coordinates=True)
+        
     
     def on_timeout(self):
         self.amqp_connection.close()
