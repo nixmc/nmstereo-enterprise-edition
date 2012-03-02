@@ -5,9 +5,11 @@ Picks up requests from the playlist, and broadcasts to all connected clients.
 """
 
 import codecs
+import datetime
 import json
 import pprint
 import sys
+from threading import Timer
 
 from bson.objectid import ObjectId
 import pika
@@ -76,14 +78,24 @@ class Broadcaster(object):
         if len(self.items) > 0:
             
             # If no items 'sent' or 'playing', send next item in queue
-            items = [item for item in self.playlist_store.find({'$or': [{'status':'sent'},{'status':'playing'}]})]
+            sent_items = [item for item in self.playlist_store.find({'status':'sent'})]
+            playing_items = [item for item in self.playlist_store.find({'status':'playing'})]
             
-            # If 'playing' and datime > playing.start_date + playing.track_length:
-            # And if nothing 'sent':
-            # Send next item
-            # ...
+            # Look for any expired items in playing
+            expired = False
+            for item in playing_items:
+                end_date = item['start_date'] + datetime.timedelta(seconds=item['track']['track']['length'])
+                expired = expired or end_date < datetime.datetime.now()
             
-            if len(items) == 0:
+            # Assume we send nothing
+            send_item = False
+            # Conditions under which we send...
+            # 1. Nothing sent, and nothing playing
+            send_item = send_item or (len(sent_items) == 0 and len(playing_items) == 0)
+            # 2. Nothing sent, and something expired marked as playing
+            send_item = send_item or (len(sent_items) == 0 and len(playing_items) > 0 and expired)
+            
+            if send_item:
                 
                 # Send next item in queue
                 self.current_item = self.items.pop(0)
@@ -104,7 +116,29 @@ class Broadcaster(object):
                 self.playlist_store.update({'_id': self.current_item['_id']}, self.current_item)
     
     def next(self):
-        pass
+        print " [x] Next!"
+        self.send()
+                
+    def now_playing(self, id):
+        # Override current item with this id
+        self.current_item = self.playlist_store.find_one({'_id': ObjectId(id)})
+        
+        # Mark existing 'playing' items as 'played'
+        for item in self.playlist_store.find({'status':'playing'}):
+            item['status'] = 'played'
+            self.playlist_store.update({'_id': item['_id']}, item)
+        
+        # Mark current item as 'playing', set start_time
+        self.current_item['status'] = 'playing'
+        self.current_item['start_date'] = datetime.datetime.now()
+        self.playlist_store.update({'_id': self.current_item['_id']}, self.current_item)
+        
+        # Set up timer to fire at the end of the current item
+        timer = Timer(self.current_item['track']['track']['length'], self.next)
+        timer.start()
+        
+        # Tweet
+        # ...
     
     def on_timeout(self):
         self.amqp_connection.close()
@@ -197,7 +231,8 @@ class Broadcaster(object):
         Fires when a message has been received. Clients are responsible for 'firing' this by 
         publishing to the `self.amqp_confirm_queue` queue.
         """
-        print body
+        print " [x] Received confirmation %r" % (body,)
+        self.now_playing(body)
         ch.basic_ack(delivery_tag=method.delivery_tag)
     
     def on_delivered(self, frame):
