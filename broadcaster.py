@@ -38,8 +38,10 @@ class Broadcaster(object):
         
         # AMQP, get queue names
         self.amqp_in_queue = getattr(settings, "AMQP_IN_BROADCAST_QUEUE")
-        self.amqp_out_queue = getattr(settings, "AMQP_OUT_BROADCAST_QUEUE")
         self.amqp_confirm_queue = getattr(settings, "AMQP_CONFIRM_BROADCAST_QUEUE")
+        
+        # AMQP, get exchange names
+        self.amqp_broadcast_exchange = getattr(settings, "AMQP_BROADCAST_EXCHANGE")
         
         # AMQP, async style!
         # Create our connection parameters and connect to RabbitMQ
@@ -85,12 +87,13 @@ class Broadcaster(object):
                 # Send next item in queue
                 self.current_item = self.items.pop(0)
                 print " [x] Sending %r" % (self.current_item['track']['track']['name'],)
-                # self.amqp_primary_channel.basic_publish(exchange='',
-                #                                 routing_key=self.amqp_out_queue,
-                #                                 body=str(self.current_item['_id']),
-                #                                 properties=pika.BasicProperties(
-                #                                   content_type="text/plain",
-                #                                   delivery_mode=2))
+                # Send using the broadcast exchange (Pub/Sub)
+                self.amqp_primary_channel.basic_publish(exchange=self.amqp_broadcast_exchange,
+                                                        routing_key='',
+                                                        body=str(self.current_item['_id']),
+                                                        properties=pika.BasicProperties(
+                                                          content_type="text/plain",
+                                                          delivery_mode=2))
                 
                 # Mark item as sent
                 self.current_item['status'] = 'sent'
@@ -131,11 +134,12 @@ class Broadcaster(object):
                                                 exclusive=False, auto_delete=False,
                                                 callback=self.on_in_queue_declared)
         
-        # Declare 'OUT' queue - for broadcasting items
-        self.amqp_primary_channel.queue_declare(queue=self.amqp_out_queue, durable=True,
-                                                exclusive=False, auto_delete=False,
-                                                callback=self.on_out_queue_declared)
-    
+        # Declare 'fanout' exchange - for broadcasting items
+        # The fanout exchange is very simple. It just broadcasts all the
+        # messages it receives to all the queues it knows.
+        self.amqp_primary_channel.exchange_declare(exchange=self.amqp_broadcast_exchange, type='fanout',
+                                                   callback=self.on_exchange_declared)
+        
     def on_secondary_channel_open(self, ch):
         """
         Fires when the secondary channel is available to us.
@@ -159,7 +163,7 @@ class Broadcaster(object):
         # Start consuming
         self.amqp_secondary_channel.basic_consume(self.on_confirmation, queue=self.amqp_confirm_queue)
     
-    def on_out_queue_declared(self, frame):
+    def on_exchange_declared(self, frame):
         # If no items 'sent' or 'playing', broadcast next item in queue
         self.send()
     

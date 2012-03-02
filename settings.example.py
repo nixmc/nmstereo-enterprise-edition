@@ -9,7 +9,8 @@ AMQP_HOST = "localhost"
 AMQP_MAIN_QUEUE = "decode"
 AMQP_IN_BROADCAST_QUEUE = "receive"
 AMQP_CONFIRM_BROADCAST_QUEUE = "confirm"
-AMQP_OUT_BROADCAST_QUEUE = "broadcast"
+# AMQP_OUT_BROADCAST_QUEUE = "broadcast"
+AMQP_BROADCAST_EXCHANGE = "tracks"
 
 # OAuth stuff...
 OAUTH_CONSUMER_KEY = ""
