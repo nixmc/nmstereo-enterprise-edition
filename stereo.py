@@ -5,7 +5,9 @@ Plays incoming tracks on the stereo. Tells the broadcaster when a track has been
 """
 
 import codecs
+import json
 import pprint
+import subprocess
 import sys
 
 import pika
@@ -49,6 +51,14 @@ class Stereo(object):
         # Loop until we're fully closed, will stop on its own
         self.amqp_connection.ioloop.start()
     
+    def play(self, track):
+        """
+        Play the requested track.
+        """
+        uri = track['track']['track']['href']
+        print " [x] Playing %r" % (uri,)
+        subprocess.call(('open', '-g', '/Applications/Spotify.app', uri))
+        
     def on_timeout(self):
         self.amqp_connection.close()
     
@@ -61,14 +71,26 @@ class Stereo(object):
     
     def on_primary_channel_open(self, ch):
         """
-        Fires when the primary channel is available to us.
-        
-        The primary channel is to receive new items to be queued, and to broadcast
-        items to be played.
+        Fires when the primary channel is available to us.        
         """
-        pass
+        # Our usable channel has been passed to us, assign it for future use
+        self.amqp_primary_channel = ch
         
+        # Declare 'fanout' exchange - for receiving items from the broadcaster
+        self.amqp_primary_channel.exchange_declare(exchange=self.amqp_broadcast_exchange, type='fanout',
+                                                   callback=self.on_exchange_declared)
+    
+    def on_exchange_declared(self, frame):
+        self.amqp_primary_channel.queue_declare(exclusive=True, callback=self.on_in_queue_declared)
+    
     def on_in_queue_declared(self, frame):
+        # Get the name of the queue
+        self.amqp_in_queue = frame.method.queue
+        
+        # Bind the queue to our broadcast channel
+        self.amqp_primary_channel.queue_bind(exchange=self.amqp_broadcast_exchange,
+                                             queue=self.amqp_in_queue)
+        
         # Start consuming
         self.amqp_primary_channel.basic_consume(self.on_item, queue=self.amqp_in_queue)
     
@@ -76,7 +98,10 @@ class Stereo(object):
         """
         Fires when we receive a new track to play.
         """
-        print "Got ", track
+        self.track = json.loads(track)
+        print " [x] Received %r" % (self.track['track']['track']['name'],)
+        
+        self.play(self.track)
         
         # Acknowledge
         ch.basic_ack(delivery_tag=method.delivery_tag)

@@ -5,6 +5,7 @@ Picks up requests from the playlist, and broadcasts to all connected clients.
 """
 
 import codecs
+import json
 import pprint
 import sys
 
@@ -87,12 +88,15 @@ class Broadcaster(object):
                 # Send next item in queue
                 self.current_item = self.items.pop(0)
                 print " [x] Sending %r" % (self.current_item['track']['track']['name'],)
+                
                 # Send using the broadcast exchange (Pub/Sub)
                 self.amqp_primary_channel.basic_publish(exchange=self.amqp_broadcast_exchange,
                                                         routing_key='',
-                                                        body=str(self.current_item['_id']),
+                                                        body=json.dumps({'_id': str(self.current_item['_id']),
+                                                                         'track': self.current_item['track'],
+                                                                         'from': self.current_item['from']}),
                                                         properties=pika.BasicProperties(
-                                                          content_type="text/plain",
+                                                          content_type="application/json",
                                                           delivery_mode=2))
                 
                 # Mark item as sent
