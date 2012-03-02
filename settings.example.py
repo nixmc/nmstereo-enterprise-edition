@@ -6,7 +6,7 @@ MONGODB_SPOTIFY_META_COLLECTION = "nmstereo_spotify_meta"
 
 # AMQP stuff...
 AMQP_HOST = "localhost"
-AMQP_MAIN_QUEUE = "nmstereo"
+AMQP_MAIN_QUEUE = "decode"
 AMQP_IN_BROADCAST_QUEUE = "receive"
 AMQP_CONFIRM_BROADCAST_QUEUE = "confirm"
 AMQP_OUT_BROADCAST_QUEUE = "broadcast"
