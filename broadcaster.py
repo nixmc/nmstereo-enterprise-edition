@@ -33,13 +33,8 @@ class Broadcaster(object):
         # Load previously queued items
         self.items = [item for item in self.playlist_store.find({'status': 'queued'})]
         
-        # Load 'playing' or 'sent' items -- there should be only ONE
-        # ...
-        
-        # If 'playing' and datime > playing.start_date + playing.track_length:
-        # And if nothing 'sent':
-        # Send next item
-        # ...
+        # Load 'playing' or 'sent' items -- there should be only ONE!
+        self.current_item = self.playlist_store.find_one({'$or': [{'status':'sent'},{'status':'playing'}]})        
         
         # AMQP, get queue names
         self.amqp_in_queue = getattr(settings, "AMQP_IN_BROADCAST_QUEUE")
@@ -73,21 +68,33 @@ class Broadcaster(object):
         """
         Broadcasts the next item to all interested parties.
         """
-        # Get next item
-        self.current_item = self.items.pop(0)
         
-        # Send item
-        print "> Sending", self.current_item['track']['track']['name']
-        self.amqp_primary_channel.basic_publish(exchange='',
-                                        routing_key=self.amqp_out_queue,
-                                        body=str(self.current_item['_id']),
-                                        properties=pika.BasicProperties(
-                                          content_type="text/plain",
-                                          delivery_mode=2))
-        
-        # Mark item as sent
-        self.current_item['status'] = 'sent'
-        self.playlist_store.update({'_id': self.current_item['_id']}, self.current_item)
+        # Check that we have something to send
+        if len(self.items) > 0:
+            
+            # If no items 'sent' or 'playing', send next item in queue
+            items = [item for item in self.playlist_store.find({'$or': [{'status':'sent'},{'status':'playing'}]})]
+            
+            # If 'playing' and datime > playing.start_date + playing.track_length:
+            # And if nothing 'sent':
+            # Send next item
+            # ...
+            
+            if len(items) == 0:
+                
+                # Send next item in queue
+                self.current_item = self.items.pop(0)
+                print " [x] Sending %r" % (self.current_item['track']['track']['name'],)
+                # self.amqp_primary_channel.basic_publish(exchange='',
+                #                                 routing_key=self.amqp_out_queue,
+                #                                 body=str(self.current_item['_id']),
+                #                                 properties=pika.BasicProperties(
+                #                                   content_type="text/plain",
+                #                                   delivery_mode=2))
+                
+                # Mark item as sent
+                self.current_item['status'] = 'sent'
+                self.playlist_store.update({'_id': self.current_item['_id']}, self.current_item)
     
     def next(self):
         pass
@@ -154,17 +161,27 @@ class Broadcaster(object):
     
     def on_out_queue_declared(self, frame):
         # If no items 'sent' or 'playing', broadcast next item in queue
-        if len(self.items) > 0:
-            items = [item for item in self.playlist_store.find({'$or': [{'status':'sent'},{'status':'playing'}]})]
-            if len(items) == 0:
-                # Send next item in queue
-                self.send()
+        self.send()
     
     def on_item(self, ch, method, header, body):
         """
         Fires when we receive a new item to queue.
         """
-        print body
+        # Get the item from the playlist store
+        item = self.playlist_store.find_one({'_id': ObjectId(body)})
+        print " [x] Received %r" % (item['track']['track']['name'],)
+        
+        # Add item to our list
+        self.items.append(item)
+        
+        # Mark item as 'queued'
+        item['status'] = 'queued'
+        self.playlist_store.update({'_id': item['_id']}, item)
+        
+        # If no items 'sent' or 'playing', broadcast next item in queue
+        self.send()
+        
+        # Acknowledge
         ch.basic_ack(delivery_tag=method.delivery_tag)
     
     def on_confirmation(self, ch, method, header, body):
@@ -187,9 +204,10 @@ if __name__ == "__main__":
     sys.stdout = codecs.getwriter('utf8')(sys.stdout)
     
     broadcaster = Broadcaster()
-    pprint.pprint(broadcaster.items)
+    # pprint.pprint(broadcaster.items)
     
     try:
+        print ' [*] Waiting for messages. To exit press CTRL+C'
         broadcaster.start()
     except KeyboardInterrupt:
         broadcaster.close()
