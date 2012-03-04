@@ -234,19 +234,24 @@ class Broadcaster(object):
         """
         Fires when we receive a new item to queue.
         """
-        # Get the item from the playlist store
-        item = self.playlist_store.find_one({'_id': ObjectId(body)})
-        print " [x] Received %r" % (item['track']['track']['name'],)
-        
-        # Add item to our list
-        self.items.append(item)
-        
-        # Mark item as 'queued'
-        item['status'] = 'queued'
-        self.playlist_store.update({'_id': item['_id']}, item)
-        
-        # If no items 'sent' or 'playing', broadcast next item in queue
-        self.send()
+        try:
+            # Get the item from the playlist store
+            item = self.playlist_store.find_one({'_id': ObjectId(body)})
+            print " [x] Received %r" % (item['track']['track']['name'],)
+            
+        except:
+            print " [x] Not found: %r" % (body,)
+            
+        else:
+            # Add item to our list
+            self.items.append(item)
+            
+            # Mark item as 'queued'
+            item['status'] = 'queued'
+            self.playlist_store.update({'_id': item['_id']}, item)
+            
+            # If no items 'sent' or 'playing', broadcast next item in queue
+            self.send()
         
         # Acknowledge
         ch.basic_ack(delivery_tag=method.delivery_tag)

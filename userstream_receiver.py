@@ -9,6 +9,7 @@ import pika
 from pymongo import Connection
 
 import settings
+import utils
 
 class StreamListener(tweepy.StreamListener):
     """
@@ -17,6 +18,8 @@ class StreamListener(tweepy.StreamListener):
     
     def __init__(self):
         super(tweepy.StreamListener, self).__init__()
+        
+        self.screen_name = getattr(settings, "NMSTEREO_SCREEN_NAME", "nmstereo")
         
         # MongoDB
         self.mongo_connection = Connection()
@@ -39,9 +42,15 @@ class StreamListener(tweepy.StreamListener):
         # Save data
         id = self.store.save(item)
         
-        # Process further, if a DM
-        if "direct_message" in item:
-            print "> from", item["direct_message"]["sender"]["screen_name"], ":", item["direct_message"]["text"]
+        # Is this item a direct message?
+        a_direct_message = utils.item_a_direct_message(item)
+        
+        # Is this item a mention?
+        a_mention = utils.item_a_mention(item)
+            
+        # Continue processing further down the chain
+        if a_direct_message or a_mention:
+            print " [x] Received", utils.get_screen_name(item), ":", utils.get_text(item)
             self.channel.basic_publish(exchange='',
                 routing_key=self.amqp_queue,
                 body=str(id),

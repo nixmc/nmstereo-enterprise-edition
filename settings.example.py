@@ -19,4 +19,5 @@ OAUTH_ACCESS_KEY = ""
 OAUTH_ACCESS_SECRET = ""
 
 # Other config options...
+NMSTEREO_SCREEN_NAME = "nmstereo"
 NMSTEREO_SEND_TWEETS = False

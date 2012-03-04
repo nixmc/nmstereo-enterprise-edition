@@ -13,6 +13,7 @@ from pymongo import Connection
 
 import settings
 import spotify
+import utils
 
 class Decoder(object):
     """
@@ -105,16 +106,17 @@ class Decoder(object):
         # Lookup data in store, body should actually be an ObjectId        
         item = self.userstream_store.find_one({"_id": ObjectId(body)})
         
-        if "direct_message" in item:
-            print " [x] Received %r from %r" % (item["direct_message"]["text"], item["direct_message"]["sender"]["screen_name"])
+        if utils.item_a_direct_message(item) or utils.item_a_mention(item):
+            text, screen_name = (utils.get_text(item), utils.get_screen_name(item))
+            print " [x] Received %r from %r" % (text, screen_name)
             
             # Any Spotify tracks?
-            tracks = spotify.lookup_tracks(item["direct_message"]["text"])
+            tracks = spotify.lookup_tracks(text)
             
             if len(tracks) > 0:
                 # Save to playlist
                 for track in tracks:
-                    id = self.playlist_store.save({'track':track, 'status':'new', 'source':'twitter', 'from':item["direct_message"]["sender"]})
+                    id = self.playlist_store.save({'track':track, 'status':'new', 'source':'twitter', 'from':utils.get_sender(item)})
                     # Send each track to the broadcaster's 'receive' queue, so it can be broadcast 
                     # to all connected clients
                     print " [x] Sending %r to broadcaster" % (track['track']['name'],)
