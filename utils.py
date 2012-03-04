@@ -3,8 +3,22 @@
 """
 Misc. utility functions for dealing with tweets, primarily.
 """
+import re
 
 import settings
+
+def spotify_uri_to_url(uri):
+    """
+    Transfers a Spotify URI into a Spotify URL.
+    
+    E.g. spotify:track:7jQwvgefVBVaWkb1PXl910 becomes 
+    http://open.spotify.com/track/7jQwvgefVBVaWkb1PXl910
+    """
+    return re.sub(
+        r"^spotify:(?P<type>[^:]+):(?P<id>.+)$", 
+        "http://open.spotify.com/\g<type>/\g<id>", 
+        uri
+    )
 
 def item_a_direct_message(item):
     """
