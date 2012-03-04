@@ -123,6 +123,13 @@ class Broadcaster(object):
                 # Mark item as sent
                 self.current_item['status'] = 'sent'
                 self.playlist_store.update({'_id': self.current_item['_id']}, self.current_item)
+            
+            elif len(sent_items) == 0 and len(playing_items) > 0 and not expired:
+                # TODO
+                # If something playing and nothing sent, set up timer
+                # timer = Timer(self.current_item['track']['track']['length'], self.next)
+                # timer.start()
+                pass
     
     def next(self):
         print " [x] Next!"
