@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
 import codecs
+import httplib
+import ssl
 import sys
+import time
 import json
 
 import tweepy
@@ -86,4 +89,23 @@ if __name__ == "__main__":
     
     # Connect to stream
     stream = tweepy.Stream(auth, StreamListener(), secure=True)
-    stream.userstream()
+    err_count = 0
+    while True:
+        try:
+            print ' [*] Connecting. To exit press CTRL+C'
+            stream.userstream()
+        except httplib.IncompleteRead, e:
+            print e
+            err_count += 1
+        except ssl.SSLError, e:
+            print e
+            err_count += 1
+        except KeyboardInterrupt:
+            stream.disconnect()
+            sys.exit()
+            
+        time.sleep(5)
+
+        if err_count > 4:
+            print "5 errors, quitting"
+            exit()

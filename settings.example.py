@@ -1,5 +1,5 @@
 # MongoDB stuff...
-MONGODB_DB_NAME = "test"
+MONGODB_DB_NAME = "nmstereo"
 MONGODB_USERSTREAM_COLLECTION = "nmstereo_userstream"
 MONGODB_PLAYLIST_COLLECTION = "nmstereo_playlist"
 MONGODB_SPOTIFY_META_COLLECTION = "nmstereo_spotify_meta"
