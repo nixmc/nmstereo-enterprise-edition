@@ -152,12 +152,18 @@ class Broadcaster(object):
         timer.start()
         
         # Tweet!
-        track_name = self.current_item['track']['track']['name']
-        artist_name = self.current_item['track']['track']['artists'][0]['name']
-        screen_name = self.current_item['from']['screen_name']
-        msg = '#Nowplaying %s / %s, requested by @%s' % (artist_name, track_name, screen_name)
-        self.twitter.statuses.update(status=msg, lat="50.82519295639108", long="-0.14594435691833496", display_coordinates=True)
-        
+        if getattr(settings, "NMSTEREO_SEND_TWEETS", True):
+            try:
+                track_name = self.current_item['track']['track']['name']
+                artist_name = self.current_item['track']['track']['artists'][0]['name']
+                screen_name = self.current_item['from']['screen_name']
+                msg = '#Nowplaying %s / %s, requested by @%s' % (artist_name, track_name, screen_name)
+                self.twitter.statuses.update(status=msg, 
+                                             lat="50.82519295639108", 
+                                             long="-0.14594435691833496", 
+                                             display_coordinates=True)
+            except:
+                pass
     
     def on_timeout(self):
         self.amqp_connection.close()
