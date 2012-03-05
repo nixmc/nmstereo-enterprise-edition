@@ -16,13 +16,21 @@ _Note, this is how we've set things up, but other setups are doubtless possible.
 
 * A suitably named Twitter account, such as @[nmstereo](http://twitter.com/nmstereo).
 * A (preferably) Linux server running: 
+    
     [Python](http://www.python.org/) 2.6+
-    [RabbitMQ](http://www.rabbitmq.com/)
+    
+    [RabbitMQ](http://www.rabbitmq.com/) (other AMQP implementations should also work, but aren't tested)
+    
     [MongoDB](http://www.mongodb.org/)
+    
     [virtualenv](http://www.virtualenv.org/) (optional, but recommended)
+    
     [pip](http://www.pip-installer.org/) (optional, but recommended)
+    
 * An OS X box running:
+    
     [Spotify](http://www.spotify.com/)
+    
 * A copy of [the source code](https://github.com/nixmc/nmstereo-enterprise-edition), checked out on both the Linux server and the OS X box.
 
 ### On your Linux server:
@@ -59,10 +67,10 @@ _Note, this is how we've set things up, but other setups are doubtless possible.
 
 ## Roadmap
 
-* Frictionless deployment on Linux and OS X
-* Compatibility with [Raspberry Pi](http://www.raspberrypi.org/)
-* Compatibility with [Mopidy](https://github.com/mopidy/mopidy)
-* Integration with Spotify's [AppleScript library](http://developer.spotify.com/blog/archives/2011/05/27/spotify-051-for-mac-%E2%80%94-now-with-applescript-support/)
+* Frictionless deployment on Linux and OS X.
+* Compatibility with [Raspberry Pi](http://www.raspberrypi.org/).
+* Compatibility with [Mopidy](https://github.com/mopidy/mopidy).
+* Integration with Spotify's [AppleScript library](http://developer.spotify.com/blog/archives/2011/05/27/spotify-051-for-mac-%E2%80%94-now-with-applescript-support/).
 
 ## Contact
 
