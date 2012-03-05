@@ -45,9 +45,9 @@ _Note, this is how we've set things up, but other setups are doubtless possible.
 * Make a [settings.py](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/settings.example.py), and edit the settings to match your own environment.
 * Run the [receiver](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/userstream_receiver.py), [decoder](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/decoder.py) and [broadcaster](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/broadcaster.py):
     <pre>
-        $ userstream_receiver.py
-        $ decoder.py
-        $ broadcaster.py
+        $ userstream_receiver.py &
+        $ decoder.py &
+        $ broadcaster.py &
     </pre>
 
 ### On your OS X box:
