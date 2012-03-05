@@ -10,60 +10,47 @@ Meet @[nmstereo](http://twitter.com/nmstereo) - our social office stereo 'bot,
 
 ## How to build your own
 
-1. Grab yourself:
+Note, this is how we've set things up, but other setups are possible.
 
-* A Twitter account, such as @[nmstereo](http://twitter.com/nmstereo).
-* A (preferably) Linux server running: 
-** [Python](http://www.python.org/) 2.6+
-** [RabbitMQ](http://www.rabbitmq.com/)
-** [MongoDB](http://www.mongodb.org/)
-** [virtualenv](http://www.virtualenv.org/) (optional, but recommended)
-** [pip](http://www.pip-installer.org/) (optional, but recommended)
-* An OS X box running:
-** [Spotify](http://www.spotify.com/)
-* A copy of [the source code](https://github.com/nixmc/nmstereo-enterprise-edition).
-
-2. On your Linux server:
-
-2.1 Create a new virtualenv, activate it, and install the requirements listed in [requirements.txt](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/requirements.txt):
-
+* Grab yourself:
+** A suitably named Twitter account, such as @[nmstereo](http://twitter.com/nmstereo).
+** A (preferably) Linux server running: 
+*** [Python](http://www.python.org/) 2.6+
+*** [RabbitMQ](http://www.rabbitmq.com/)
+*** [MongoDB](http://www.mongodb.org/)
+*** [virtualenv](http://www.virtualenv.org/) (optional, but recommended)
+*** [pip](http://www.pip-installer.org/) (optional, but recommended)
+** An OS X box running:
+*** [Spotify](http://www.spotify.com/)
+** A copy of [the source code](https://github.com/nixmc/nmstereo-enterprise-edition), checked out on both the Linux server and the OS X box.
+* On your Linux server:
+** Create a new virtualenv, activate it, and install the requirements listed in [requirements.txt](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/requirements.txt):
 <pre>
     $ virtualenv --no-site-packages ENV
     $ source ENV/bin/activate
     $ pip install requirements.txt
 </pre>
-
-2.2 Grant "Read, Write and Direct Messages" permissions to your designated Twitter account. 
-
-2.3 Make a [settings.py](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/settings.example.py), and edit the settings to match your own environment.
-
-2.4 Run the [receiver](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/userstream_receiver.py), [decoder](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/decoder.py) and [broadcaster](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/broadcaster.py):
-
+** Grant "Read, Write and Direct Messages" permissions to your designated Twitter account. 
+** Make a [settings.py](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/settings.example.py), and edit the settings to match your own environment.
+** Run the [receiver](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/userstream_receiver.py), [decoder](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/decoder.py) and [broadcaster](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/broadcaster.py):
 <pre>
     $ userstream_receiver.py
     $ decoder.py
     $ broadcaster.py
 </pre>
-
-3. On your OS X box:
-
-3.1 Create a new virtualenv, activate it, and install the requirements listed in [requirements.txt](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/requirements.txt):
-
+* On your OS X box:
+** Create a new virtualenv, activate it, and install the requirements listed in [requirements.txt](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/requirements.txt):
 <pre>
     $ virtualenv --no-site-packages ENV
     $ source ENV/bin/activate
     $ pip install requirements.txt
 </pre>
-
-3.2 Make a [settings.py](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/settings.example.py), and edit the settings to match your own environment.
-
-3.3 Run the [stereo](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/stereo.py) client:
-
+** Make a [settings.py](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/settings.example.py), and edit the settings to match your own environment.
+** Run the [stereo](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/stereo.py) client:
 <pre>
     $ stereo.py
 </pre>
-
-4. Invite your friends to "Get their hits out"! :)
+* Invite your friends to "Get their hits out"! :)
 
 ## Roadmap
 
