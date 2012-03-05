@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.nixmc.nmstereo</string>
+    <key>Disabled</key>
+    <false/>
+    <key>OnDemand</key>
+    <false/>
+    <key>KeepAlive</key>
+    <false/>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>LowPriorityIO</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/nmstereo.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/nmstereo.err</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/home/nmstereo/.virtualenvs/nmstereo/bin/python</string>
+        <string>/usr/local/nmstereo/stereo.py</string>
+    </array>
+</dict>
+</plist>
