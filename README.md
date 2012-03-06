@@ -10,7 +10,7 @@ Meet @[nmstereo](http://twitter.com/nmstereo) - our social office stereo 'bot,
 
 ## How to build your own
 
-_Note, this is how we've set things up, but other setups are doubtless possible._
+_Note, this is how we've set things up, but other setups are doubtless possible. I.e. it should be possible to setup everything up on a single [Raspberry Pi](http://www.raspberrypi.org/) running [Mopidy](https://github.com/mopidy/mopidy) (see Roadmap, below)._
 
 ### Grab yourself:
 
@@ -43,7 +43,7 @@ _Note, this is how we've set things up, but other setups are doubtless possible.
     </pre>
 * Grant "Read, Write and Direct Messages" permissions to your designated Twitter account. 
 * Make a [settings.py](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/settings.example.py), and edit the settings to match your own environment.
-* Run the [receiver](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/userstream_receiver.py), [decoder](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/decoder.py) and [broadcaster](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/broadcaster.py):
+* Run the [receiver](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/userstream_receiver.py), [decoder](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/decoder.py) and [broadcaster](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/broadcaster.py), either using the [example Upstart .conf files](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/upstart/) or directly, i.e.:
     <pre>
         $ userstream_receiver.py &
         $ decoder.py &
@@ -59,9 +59,9 @@ _Note, this is how we've set things up, but other setups are doubtless possible.
         $ pip install requirements.txt
     </pre>
 * Make a [settings.py](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/settings.example.py), and edit the settings to match your own environment.
-* Run the [stereo](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/stereo.py) client:
+* Run the [stereo client](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/src/stereo.py) either using the [example LaunchAgent .plist file](https://github.com/nixmc/nmstereo-enterprise-edition/blob/master/LaunchAgents/com.nixmc.nmstereo.plist) or directly, i.e.:
     <pre>
-        $ stereo.py
+        $ stereo.py &
     </pre>
 * Invite your friends to "Get their hits out"! :)
 
