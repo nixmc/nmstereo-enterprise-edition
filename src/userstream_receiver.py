@@ -36,8 +36,10 @@ class StreamListener(tweepy.StreamListener):
         self.channel.queue_declare(queue=self.amqp_queue, durable=True)
     
     def on_data(self, data):
-        if not data:
+        if not data.strip():
             return True
+        
+        print " [x] Got:", data
         
         # Decode JSON data
         item = json.loads(data)

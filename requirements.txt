@@ -1,4 +1,4 @@
 pika==0.9.5
 pymongo==2.1.1
-tweepy==1.8
+https://github.com/swinton/tweepy/zipball/master
 twitter==1.7.2
